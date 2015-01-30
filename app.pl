@@ -50,13 +50,13 @@ post '/' => sub {
     if ( my $res = $tx->success ) {
         $result = $res->body;
         app->log->debug( Dumper( $result ) );
-        $c->render( text => "Success!", status => 200 );
+        $c->render( text => "$result", status => 200 );
     }
     else {
         my ( $err, $code ) = $tx->error;
         $result = $code ? "$code response: $err" : "Connection error: $err";
         app->log->debug( Dumper( $result ) );
-        $c->render( text => $result, status => 500 );
+        $c->render( text => "$result", status => 500 );
     }
 };
 
