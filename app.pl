@@ -46,7 +46,7 @@ post '/' => sub {
         force_sub             => '1',
         format                => '2',
         data =>
-            "email,custom_name_full,custom_twitter,custom_twitter_card,custom_is_twitter_lead,pref_enews_$frequency^$email,$name,$screen_name,$card,1,1"
+            "email,custom_name_full,custom_twitter,custom_twitter_card,custom_twitter_campaign,custom_is_twitter_lead,pref_enews_$frequency^$email,$name,$screen_name,$card,$campaign,1,1"
     };
     app->log->info( Dumper( $args ) );
     my $result;
