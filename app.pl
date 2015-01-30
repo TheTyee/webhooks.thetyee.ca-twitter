@@ -1,7 +1,9 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite;
+use Mojo::Util qw( url_escape );
 use Try::Tiny;
 use Data::Dumper;
+
 
 # Get the configuration
 my $config = plugin 'JSONConfig';
@@ -19,7 +21,6 @@ my $secret     = $config->{'tw_secret'};
 
 post '/' => sub {
     my $c = shift;
-    app->log->debug( Dumper( $c->param ) );
     # Don't do anything, unless we know this post if from Twitter
     unless ( $c->param( 'secret' ) && $c->param( 'secret' ) eq $secret ) {
         $c->render( text => "Forbidden", status => 403 );
@@ -27,11 +28,12 @@ post '/' => sub {
     }
 
     # Grab the post data from Twitter
-    my $screen_name = $c->param( 'screen_name' );
-    my $name        = $c->param( 'name' );
     my $email       = $c->param( 'email' );
-    my $campaign    = $c->param( 'campaign' );
-    my $card        = $c->param( 'card' );
+    my $screen_name = url_escape $c->param( 'screen_name' );
+    my $name        = url_escape $c->param( 'name' );
+    my $campaign    = url_escape $c->param( 'campaign' );
+    my $card        = url_escape $c->param( 'card' );
+    app->log->info( $email, $screen_name, $name, $campaign, $card );
 
     # Post it to WhatCounts
     my $args = {
@@ -45,17 +47,18 @@ post '/' => sub {
         data =>
             "email,custom_name_full,custom_twitter,custom_twitter_card,custom_is_twitter_lead^$email,$name,$screen_name,$card,1"
     };
+    app->log->info( Dumper( $args ) );
     my $result;
     my $tx = $ua->post( $API => form => $args );
     if ( my $res = $tx->success ) {
         $result = $res->body;
-        app->log->debug( Dumper( $result ) );
+        app->log->info( Dumper( $result ) );
         $c->render( text => "$result", status => 200 );
     }
     else {
         my ( $err, $code ) = $tx->error;
         $result = $code ? "$code response: $err" : "Connection error: $err";
-        app->log->debug( Dumper( $result ) );
+        app->log->info( Dumper( $result ) );
         $c->render( text => "$result", status => 500 );
     }
 };
